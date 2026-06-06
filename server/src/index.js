@@ -48,7 +48,12 @@ const io = new Server(server, { cors: corsOptions });
 app.set("io", io);
 app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
 app.use(cors(corsOptions));
-app.use(express.json({ limit: "5mb" }));
+app.use(express.json({
+  limit: "5mb",
+  verify: (req, res, buffer) => {
+    if (req.originalUrl === "/api/billing/webhook") req.rawBody = Buffer.from(buffer);
+  }
+}));
 app.use(morgan("dev"));
 app.use(rateLimit({ windowMs: 60_000, limit: 300 }));
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));

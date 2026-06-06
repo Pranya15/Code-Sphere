@@ -3,6 +3,7 @@ export function notFound(req, res) {
 }
 
 export function errorHandler(error, req, res, next) {
+  if (res.headersSent) return next(error);
   console.error(error);
   if (error.name === "ZodError") {
     return res.status(400).json({ message: error.errors?.[0]?.message || "Invalid request body", issues: error.errors });

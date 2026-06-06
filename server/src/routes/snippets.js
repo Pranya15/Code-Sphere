@@ -1,6 +1,7 @@
 import express from "express";
 import Snippet from "../models/Snippet.js";
 import { requireAuth, requireWorkspaceRole } from "../middleware/auth.js";
+import { wrapAsyncRouter } from "../utils/wrapAsyncRouter.js";
 
 const router = express.Router();
 router.use(requireAuth);
@@ -38,4 +39,4 @@ router.post("/:workspaceId/:snippetId/copy", requireWorkspaceRole, async (req, r
   res.json(snippet);
 });
 
-export default router;
+export default wrapAsyncRouter(router);

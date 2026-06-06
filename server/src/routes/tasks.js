@@ -4,6 +4,7 @@ import Task from "../models/Task.js";
 import { requireAuth, requireWorkspaceRole } from "../middleware/auth.js";
 import { recordActivity, notifyUsers } from "../services/activity.js";
 import { emitWorkspace } from "../socket/index.js";
+import { wrapAsyncRouter } from "../utils/wrapAsyncRouter.js";
 
 const router = express.Router();
 router.use(requireAuth);
@@ -152,4 +153,4 @@ router.post("/:workspaceId/reorder", requireWorkspaceRole, async (req, res) => {
   res.json({ ok: true });
 });
 
-export default router;
+export default wrapAsyncRouter(router);

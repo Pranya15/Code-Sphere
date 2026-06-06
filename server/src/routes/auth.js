@@ -4,9 +4,10 @@ import { z } from "zod";
 import User from "../models/User.js";
 import Workspace from "../models/Workspace.js";
 import { requireAuth, randomPassword, signToken } from "../middleware/auth.js";
+import { wrapAsyncRouter } from "../utils/wrapAsyncRouter.js";
 
 const router = express.Router();
-const providers = ["google", "microsoft", "github", "linkedin"];
+const providers = ["google", "microsoft", "github", "linkedin", "apple"];
 
 const oauthConfigs = {
   google: {
@@ -32,6 +33,12 @@ const oauthConfigs = {
     authUrl: "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
     tokenUrl: "https://login.microsoftonline.com/common/oauth2/v2.0/token",
     scope: "openid profile email User.Read"
+  },
+  apple: {
+    name: "Apple",
+    authUrl: "https://appleid.apple.com/auth/authorize",
+    tokenUrl: "https://appleid.apple.com/auth/token",
+    scope: "name email"
   }
 };
 
@@ -247,6 +254,16 @@ async function fetchProviderProfile(provider, token) {
     };
   }
 
+  if (provider === "apple") {
+    const profile = decodeJwtPayload(token.id_token);
+    return {
+      id: profile.sub,
+      name: profile.name || profile.email?.split("@")[0] || "Apple user",
+      email: profile.email,
+      avatar: ""
+    };
+  }
+
   const profile = await fetchJson("https://graph.microsoft.com/v1.0/me?$select=id,displayName,mail,userPrincipalName", {
     headers: { Authorization: `Bearer ${accessToken}` }
   });
@@ -459,4 +476,4 @@ router.patch("/profile", requireAuth, async (req, res) => {
   res.json(user);
 });
 
-export default router;
+export default wrapAsyncRouter(router);

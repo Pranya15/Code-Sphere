@@ -9,15 +9,45 @@
 [32m[nodemon] starting `node src/index.js`[39m
 MongoDB connected: codesphere
 CodeSphere running at http://localhost:5000
-[0mGET /api/health [32m200[0m 8.970 ms - 39[0m
-[0mGET /api/auth/oauth/providers [32m200[0m 2.071 ms - 403[0m
-[0mGET /api/auth/oauth/providers [32m200[0m 1.502 ms - 403[0m
-[31m[nodemon] app crashed - waiting for file changes before starting...[39m
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] starting `node src/index.js`[39m
-MongoDB connected: codesphere
-[31m[nodemon] app crashed - waiting for file changes before starting...[39m
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] starting `node src/index.js`[39m
-MongoDB connected: codesphere
-[31m[nodemon] app crashed - waiting for file changes before starting...[39m
+[0mGET /api/health [32m200[0m 23.842 ms - 39[0m
+[0mGET /api/auth/me [32m200[0m 85.736 ms - 963[0m
+[0mGET /api/auth/me [32m200[0m 25.161 ms - 963[0m
+[0mGET /api/workspaces/6a219a0dcd2d852f37021042/dashboard [32m200[0m 87.456 ms - 6322[0m
+[0mGET /api/workspaces/6a219a0dcd2d852f37021042/dashboard [36m304[0m 39.165 ms - -[0m
+[0mGET /api/projects/6a219a0dcd2d852f37021042 [32m200[0m 25.174 ms - 355[0m
+[0mGET /api/projects/6a219a0dcd2d852f37021042 [36m304[0m 15.787 ms - -[0m
+[0mGET /api/team/6a219a0dcd2d852f37021042 [32m200[0m 32.893 ms - 192[0m
+[0mGET /api/tasks/6a219a0dcd2d852f37021042 [32m200[0m 42.236 ms - 1437[0m
+[0mGET /api/projects/6a219a0dcd2d852f37021042 [36m304[0m 45.653 ms - -[0m
+[0mGET /api/team/6a219a0dcd2d852f37021042 [36m304[0m 9.616 ms - -[0m
+[0mGET /api/tasks/6a219a0dcd2d852f37021042 [36m304[0m 26.037 ms - -[0m
+[0mGET /api/projects/6a219a0dcd2d852f37021042 [36m304[0m 27.433 ms - -[0m
+[0mGET /api/tasks/6a219a0dcd2d852f37021042 [36m304[0m 35.095 ms - -[0m
+[0mGET /api/team/6a219a0dcd2d852f37021042 [36m304[0m 20.974 ms - -[0m
+[0mGET /api/projects/6a219a0dcd2d852f37021042 [36m304[0m 24.153 ms - -[0m
+[0mGET /api/tasks/6a219a0dcd2d852f37021042 [36m304[0m 63.325 ms - -[0m
+[0mGET /api/team/6a219a0dcd2d852f37021042 [36m304[0m 12.608 ms - -[0m
+[0mGET /api/projects/6a219a0dcd2d852f37021042 [36m304[0m 15.765 ms - -[0m
+[0mGET /api/activity/6a219a0dcd2d852f37021042 [32m200[0m 17.293 ms - 4546[0m
+[0mGET /api/activity/6a219a0dcd2d852f37021042 [36m304[0m 18.647 ms - -[0m
+[0mGET /api/team/6a219a0dcd2d852f37021042 [36m304[0m 16.252 ms - -[0m
+[0mGET /api/team/6a219a0dcd2d852f37021042 [36m304[0m 9.568 ms - -[0m
+[0mGET /api/docs/6a219a0dcd2d852f37021042 [32m200[0m 24.935 ms - 2[0m
+[0mGET /api/docs/6a219a0dcd2d852f37021042 [36m304[0m 10.940 ms - -[0m
+[0mGET /api/snippets/6a219a0dcd2d852f37021042 [32m200[0m 17.249 ms - 388[0m
+[0mGET /api/snippets/6a219a0dcd2d852f37021042 [36m304[0m 11.447 ms - -[0m
+[0mPOST /api/ai/6a219a0dcd2d852f37021042/assistant [32m200[0m 16.409 ms - 116[0m
+[0mPOST /api/search/6a219a0dcd2d852f37021042/ai [32m200[0m 13.268 ms - 304[0m
+[0mGET /api/billing [32m200[0m 16.642 ms - 1281[0m
+[0mGET /api/billing [36m304[0m 8.099 ms - -[0m
+[0mPOST /api/billing/upgrade [32m200[0m 16.096 ms - 460[0m
+[0mGET /api/billing [32m200[0m 8.301 ms - 1282[0m
+[0mGET /api/team/6a219a0dcd2d852f37021042 [32m200[0m 14.304 ms - 193[0m
+[0mGET /api/team/6a219a0dcd2d852f37021042 [36m304[0m 10.723 ms - -[0m
+[0mPOST /api/workspaces/6a219a0dcd2d852f37021042/invites [33m409[0m 11.230 ms - 53[0m
+[0mPOST /api/workspaces/6a219a0dcd2d852f37021042/invites [32m201[0m 56.997 ms - 653[0m
+[0mGET /api/team/6a219a0dcd2d852f37021042 [36m304[0m 11.375 ms - -[0m
+[0mPOST /api/workspaces/6a219a0dcd2d852f37021042/invites [32m201[0m 33.232 ms - 653[0m
+[0mGET /api/team/6a219a0dcd2d852f37021042 [36m304[0m 9.816 ms - -[0m
+[0mPOST /api/workspaces/6a219a0dcd2d852f37021042/invites [32m201[0m 36.508 ms - 653[0m
+[0mGET /api/team/6a219a0dcd2d852f37021042 [36m304[0m 10.058 ms - -[0m

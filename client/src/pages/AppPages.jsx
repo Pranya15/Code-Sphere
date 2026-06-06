@@ -7,6 +7,7 @@ import { Activity, AlertCircle, Bell, BookOpen, Bot, Calendar, CalendarDays, Che
 import toast from "react-hot-toast";
 import { api } from "../api/client";
 import { useAuth } from "../context/AuthContext";
+import { useTheme } from "../context/ThemeContext";
 import { useSocket } from "../context/SocketContext";
 import { Badge, Button, Empty, Input, Panel, Select, Skeleton, Textarea, timeAgo } from "../components/ui";
 
@@ -321,7 +322,7 @@ export function TasksPage() {
         <div className="rounded-lg border border-[var(--line)] bg-white/70 p-3 dark:bg-white/5"><div className="text-xs font-semibold uppercase text-slate-500">Active</div><div className="mt-1 text-2xl font-black">{boardStats.active}</div></div>
         <div className="rounded-lg border border-[var(--line)] bg-white/70 p-3 dark:bg-white/5"><div className="text-xs font-semibold uppercase text-slate-500">Priority P0</div><div className="mt-1 text-2xl font-black text-rose-600 dark:text-rose-300">{boardStats.urgent}</div></div>
       </div>
-      <div className="grid gap-3 xl:grid-cols-[minmax(240px,1.3fr)_minmax(160px,.8fr)_minmax(160px,.8fr)_100px_140px_150px_minmax(140px,.8fr)_auto]">
+      <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 2xl:grid-cols-[minmax(220px,1.3fr)_minmax(150px,.8fr)_minmax(150px,.8fr)_90px_130px_145px_minmax(130px,.8fr)_minmax(110px,auto)]">
         <Input id="task-title-input" placeholder="Task title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
         <Select value={form.project} onChange={(e) => setForm({ ...form, project: e.target.value })}>{projects.map((project) => <option key={project._id} value={project._id}>{project.name}</option>)}</Select>
         <Select value={form.assignee} onChange={(e) => setForm({ ...form, assignee: e.target.value })}><option value="">Unassigned</option>{members.map((member) => <option key={member._id} value={member._id}>{member.name}</option>)}</Select>
@@ -329,7 +330,7 @@ export function TasksPage() {
         <Select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>{statuses.map((status) => <option key={status}>{status}</option>)}</Select>
         <Input type="date" value={form.dueDate} onChange={(e) => setForm({ ...form, dueDate: e.target.value })} />
         <Input placeholder="Labels" value={form.labels} onChange={(e) => setForm({ ...form, labels: e.target.value })} />
-        <Button className="whitespace-nowrap" onClick={() => create()} disabled={loading}>{loading && <Loader2 className="h-4 w-4 animate-spin" />}{editingId ? "Save Task" : "Add Task"}</Button>
+        <Button className="w-full whitespace-nowrap" onClick={() => create()} disabled={loading}>{loading && <Loader2 className="h-4 w-4 animate-spin" />}{editingId ? "Save Task" : "Add Task"}</Button>
       </div>
       {editingId && <Button variant="ghost" className="mt-3" onClick={() => { setEditingId(""); setForm({ ...emptyTaskForm, project: projects[0]?._id || "", assignee: members[0]?._id || "" }); }}><X className="h-4 w-4" />Cancel Edit</Button>}
     </section>
@@ -342,7 +343,7 @@ export function TasksPage() {
         <div className="relative sm:w-44"><Filter className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-slate-400" /><Select className="pl-9" value={filterPriority} onChange={(e) => setFilterPriority(e.target.value)}><option>All</option><option>P0</option><option>P1</option><option>P2</option></Select></div>
       </div>
     </div>
-    {view === "board" && <DragDropContext onDragEnd={drag}><div className="grid min-w-0 grid-cols-1 gap-4 md:grid-cols-2 2xl:grid-cols-4">{statuses.map((status) => {
+    {view === "board" && <DragDropContext onDragEnd={drag}><div className="grid min-w-0 grid-cols-1 gap-4 xl:grid-cols-2 2xl:grid-cols-4">{statuses.map((status) => {
       const columnTasks = visibleTasks.filter((task) => task.status === status).sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
       return <Droppable droppableId={status} key={status}>{(drop, snapshot) => <section ref={drop.innerRef} {...drop.droppableProps} className={`flex min-w-0 flex-col overflow-hidden rounded-xl border bg-slate-50/80 shadow-[0_16px_44px_rgba(15,23,42,.07)] transition dark:bg-white/5 ${snapshot.isDraggingOver ? "border-teal-300 ring-4 ring-teal-400/15" : "border-[var(--line)]"}`}>
         <div className="flex items-center justify-between border-b border-[var(--line)] bg-white/70 px-4 py-3 dark:bg-white/5">
@@ -350,7 +351,7 @@ export function TasksPage() {
           <span className="rounded-full border border-[var(--line)] bg-white px-2.5 py-1 text-xs font-bold text-slate-600 dark:bg-carbon dark:text-slate-300">{columnTasks.length}</span>
         </div>
         <div className="p-3"><Button type="button" variant="ghost" className="w-full justify-center" onClick={() => selectColumn(status)}><Plus className="h-4 w-4" />Add Task</Button></div>
-        <div className="min-h-40 flex-1 space-y-3 px-3 pb-3">
+        <div className="thin-scroll min-h-40 flex-1 space-y-3 overflow-y-auto overflow-x-hidden px-3 pb-3">
           {columnTasks.map((task, index) => <Draggable draggableId={task._id} index={index} key={task._id}>{(dragItem, dragSnapshot) => <div ref={dragItem.innerRef} {...dragItem.draggableProps} {...dragItem.dragHandleProps}><TaskCard task={task} onStatusChange={changeStatus} onEdit={editTask} onDelete={() => setConfirm({ id: task._id, label: task.title })} dragging={dragSnapshot.isDragging} /></div>}</Draggable>)}
           {drop.placeholder}
           {!columnTasks.length && <div className="rounded-lg border border-dashed border-[var(--line)] bg-white/60 p-6 text-center text-sm text-slate-500 dark:bg-white/5">No tasks in {status}</div>}
@@ -365,11 +366,11 @@ export function TasksPage() {
 
 function TaskCard({ task, onStatusChange, onEdit, onDelete, dragging = false }) {
   const assignee = task.assignees?.[0];
-  return <motion.article layout className={`group rounded-xl border border-[var(--line)] bg-white p-4 shadow-[0_12px_30px_rgba(15,23,42,.08)] transition duration-200 dark:bg-carbon/92 ${dragging ? "rotate-1 scale-[1.02] shadow-glow" : "hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-[0_18px_42px_rgba(15,23,42,.12)] dark:hover:border-slate-600"}`}>
+  return <motion.article layout className={`group min-w-0 overflow-hidden rounded-xl border border-[var(--line)] bg-white p-3 shadow-[0_12px_30px_rgba(15,23,42,.08)] transition duration-200 dark:bg-carbon/92 sm:p-4 ${dragging ? "rotate-1 scale-[1.02] shadow-glow" : "hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-[0_18px_42px_rgba(15,23,42,.12)] dark:hover:border-slate-600"}`}>
     <div className="mb-3 flex items-center justify-between gap-2">
       <div className="flex min-w-0 items-center gap-2">
         <Badge tone={priorities[task.priority]}>{task.priority}</Badge>
-        <span className="truncate rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-500 dark:bg-white/8">{task.project?.key || "TASK"}</span>
+        <span className="max-w-[8rem] truncate rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-500 dark:bg-white/8">{task.project?.key || "TASK"}</span>
       </div>
       <div className="flex items-center gap-1 opacity-80 transition group-hover:opacity-100">
         <button type="button" aria-label="Edit task" onClick={(e) => { e.stopPropagation(); onEdit(task); }} className="rounded-md p-1.5 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-white/8 dark:hover:text-white"><Edit3 className="h-4 w-4" /></button>
@@ -378,17 +379,17 @@ function TaskCard({ task, onStatusChange, onEdit, onDelete, dragging = false }) 
     </div>
     <h3 className="line-clamp-2 text-[15px] font-bold leading-5 tracking-tight">{task.title}</h3>
     <p className="mt-2 line-clamp-2 min-h-10 text-sm leading-5 text-slate-500">{task.description || "No description added."}</p>
-    <div className="mt-3 flex min-h-7 flex-wrap gap-1.5">{task.labels?.slice(0, 3).map((label) => <Badge key={label}>{label}</Badge>)}</div>
+    <div className="mt-3 flex min-h-7 min-w-0 flex-wrap gap-1.5">{task.labels?.slice(0, 3).map((label) => <Badge key={label}>{label}</Badge>)}</div>
     <Select className="mt-3 h-9 min-h-9 rounded-md text-xs font-semibold" value={task.status} onChange={(e) => onStatusChange(task, e.target.value)} onMouseDown={(e) => e.stopPropagation()} onClick={(e) => e.stopPropagation()}>{statuses.map((status) => <option key={status}>{status}</option>)}</Select>
-    <div className="mt-4 flex items-center justify-between gap-3 border-t border-[var(--line)] pt-3 text-xs text-slate-500">
+    <div className="mt-4 flex flex-col gap-2 border-t border-[var(--line)] pt-3 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex min-w-0 items-center gap-2"><Avatar user={assignee} /><span className="truncate">{assignee?.name || "Unassigned"}</span></div>
-      <div className="flex shrink-0 items-center gap-3"><span>{task.dueDate ? format(new Date(task.dueDate), "MMM d") : "No date"}</span><span className="inline-flex items-center gap-1"><MessageCircle className="h-3.5 w-3.5" />{task.comments?.length || 0}</span></div>
+      <div className="flex shrink-0 flex-wrap items-center gap-3"><span>{task.dueDate ? format(new Date(task.dueDate), "MMM d") : "No date"}</span><span className="inline-flex items-center gap-1"><MessageCircle className="h-3.5 w-3.5" />{task.comments?.length || 0}</span></div>
     </div>
   </motion.article>;
 }
 
 function TaskListRow({ task, onStatusChange, onEdit, onDelete }) {
-  return <div className="mb-2 grid gap-3 rounded-xl border border-[var(--line)] bg-white/78 p-3 text-sm shadow-[0_8px_24px_rgba(15,23,42,.05)] transition hover:bg-white dark:bg-white/5 md:grid-cols-[1fr_120px_160px_120px_96px] md:items-center"><div><div className="font-semibold">{task.title}</div><div className="text-xs text-slate-500">{task.project?.name || "No project"}</div></div><Badge tone={priorities[task.priority]}>{task.priority}</Badge><Select value={task.status} onChange={(e) => onStatusChange(task, e.target.value)}>{statuses.map((status) => <option key={status}>{status}</option>)}</Select><div className="text-xs text-slate-500">{task.dueDate ? format(new Date(task.dueDate), "MMM d") : "No date"}</div><div className="flex gap-2"><Button variant="ghost" onClick={() => onEdit(task)}><Edit3 className="h-4 w-4" /></Button><Button variant="ghost" onClick={onDelete}><Trash2 className="h-4 w-4" /></Button></div></div>;
+  return <div className="mb-2 grid min-w-0 gap-3 rounded-xl border border-[var(--line)] bg-white/78 p-3 text-sm shadow-[0_8px_24px_rgba(15,23,42,.05)] transition hover:bg-white dark:bg-white/5 lg:grid-cols-[minmax(0,1fr)_80px_150px_90px_96px] lg:items-center"><div className="min-w-0"><div className="truncate font-semibold">{task.title}</div><div className="truncate text-xs text-slate-500">{task.project?.name || "No project"}</div></div><Badge tone={priorities[task.priority]}>{task.priority}</Badge><Select className="min-w-0" value={task.status} onChange={(e) => onStatusChange(task, e.target.value)}>{statuses.map((status) => <option key={status}>{status}</option>)}</Select><div className="text-xs text-slate-500">{task.dueDate ? format(new Date(task.dueDate), "MMM d") : "No date"}</div><div className="flex gap-2"><Button variant="ghost" onClick={() => onEdit(task)}><Edit3 className="h-4 w-4" /></Button><Button variant="ghost" onClick={onDelete}><Trash2 className="h-4 w-4" /></Button></div></div>;
 }
 
 function Avatar({ user }) {
@@ -398,7 +399,7 @@ function Avatar({ user }) {
 
 export function CalendarPage() {
   const { activeWorkspaceId } = useAuth();
-  const { data: tasks, setData: setTasks } = useWorkspaceEndpoint((id) => `/tasks/${id}`);
+  const { data: tasks, setData: setTasks, loading: tasksLoading } = useWorkspaceEndpoint((id) => `/tasks/${id}`);
   const { data: projects } = useWorkspaceEndpoint((id) => `/projects/${id}`);
   const { data: members } = useWorkspaceEndpoint((id) => `/team/${id}`);
   const { socket } = useSocket();
@@ -467,115 +468,80 @@ export function CalendarPage() {
     setTaskForm({ ...emptyTaskForm, project: projects[0]?._id || "", assignee: members[0]?._id || "", dueDate: format(date, "yyyy-MM-dd") });
     document.getElementById("calendar-task-title")?.focus();
   }
-  export function TeamPage() {
-    const { activeWorkspaceId } = useAuth();
-    const { data: members, reload } = useWorkspaceEndpoint((id) => `/team/${id}`);
-    const { online, socket } = useSocket();
-    const [invite, setInvite] = useState({ email: "", role: "Member" });
-    const [link, setLink] = useState("");
-    const [loading, setLoading] = useState(false);
-    const [confirm, setConfirm] = useState(null);
-
-    async function sendInvite() {
-      if (!invite.email.trim()) return toast.error("Enter an email address");
-      setLoading(true);
-      try {
-        const { data } = await api.post(`/workspaces/${activeWorkspaceId}/invites`, invite);
-        setLink(data.inviteUrl);
-        toast.success(data.delivery?.status === "sent" ? "Invitation email sent" : "Invite link created");
-      } finally {
-        setLoading(false);
-      }
+  function startEdit(task) {
+    setSelectedTask(null);
+    setEditingId(task._id);
+    setSelectedDate(task.dueDate ? new Date(task.dueDate) : selectedDate);
+    setTaskForm({
+      title: task.title || "",
+      description: task.description || "",
+      priority: task.priority || "P1",
+      status: task.status || "To Do",
+      labels: (task.labels || []).join(", "),
+      project: task.project?._id || task.project || projects[0]?._id || "",
+      assignee: task.assignees?.[0]?._id || task.assignees?.[0] || "",
+      dueDate: task.dueDate ? format(new Date(task.dueDate), "yyyy-MM-dd") : format(selectedDate, "yyyy-MM-dd")
+    });
+    document.getElementById("calendar-task-title")?.focus();
+  }
+  async function saveCalendarTask() {
+    if (!taskForm.title.trim()) return toast.error("Task title is required");
+    if (!taskForm.project) return toast.error("Project is required");
+    const payload = {
+      ...taskForm,
+      dueDate: taskForm.dueDate || format(selectedDate, "yyyy-MM-dd"),
+      assignees: taskForm.assignee ? [taskForm.assignee] : [],
+      labels: taskForm.labels.split(",").map((label) => label.trim()).filter(Boolean)
+    };
+    delete payload.assignee;
+    setSaving(true);
+    try {
+      const { data } = editingId ? await api.patch(`/tasks/${activeWorkspaceId}/${editingId}`, payload) : await api.post(`/tasks/${activeWorkspaceId}`, payload);
+      setTasks((current) => [data, ...current.filter((task) => task._id !== data._id)]);
+      setEditingId("");
+      setTaskForm({ ...emptyTaskForm, project: projects[0]?._id || "", assignee: members[0]?._id || "", dueDate: format(selectedDate, "yyyy-MM-dd") });
+      toast.success(editingId ? "Task updated" : "Task created");
+    } finally {
+      setSaving(false);
     }
-
-    async function createShareLink() {
-      setLoading(true);
-      try {
-        const { data } = await api.post(`/workspaces/${activeWorkspaceId}/invites/link`, { role: invite.role });
-        setLink(data.inviteUrl);
-        toast.success("Shareable invite link created");
-      } finally {
-        setLoading(false);
-      }
+  }
+  async function moveTaskToDate(task, day) {
+    const previous = tasks;
+    const dueDate = format(day, "yyyy-MM-dd");
+    setTasks((current) => current.map((item) => item._id === task._id ? { ...item, dueDate } : item));
+    try {
+      const { data } = await api.patch(`/tasks/${activeWorkspaceId}/${task._id}`, { dueDate });
+      setTasks((current) => current.map((item) => item._id === data._id ? data : item));
+    } catch (error) {
+      setTasks(previous);
+      toast.error("Task date could not be saved");
     }
+  }
+  const rangeLabel = view === "month" ? format(cursor, "MMMM yyyy") : view === "week" ? `${format(visibleDays[0], "MMM d")} - ${format(visibleDays[visibleDays.length - 1], "MMM d, yyyy")}` : format(cursor, "MMMM d, yyyy");
+  const calendarGridClass = view === "day" ? "grid-cols-1" : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-7";
 
-    async function changeRole(member, role) {
-      await api.patch(`/workspaces/${activeWorkspaceId}/members/${member._id}`, { role });
-      await reload();
-      toast.success("Role updated");
-    }
+  if (tasksLoading) return <>
+    <PageTitle icon={CalendarDays} title="Calendar" subtitle="Schedule tasks by due date and keep delivery work visible." />
+    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-7">
+      {Array.from({ length: 14 }, (_, index) => <Skeleton key={index} className="h-32" />)}
+    </div>
+  </>;
 
-    async function remove() {
-      setLoading(true);
-      try {
-        await api.delete(`/workspaces/${activeWorkspaceId}/members/${confirm.id}`);
-        setConfirm(null);
-        await reload();
-        toast.success("Member removed");
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    useEffect(() => {
-      if (!socket) return;
-      socket.on("member:joined", reload);
-      socket.on("invite:created", reload);
-      return () => {
-        socket.off("member:joined", reload);
-        socket.off("invite:created", reload);
-      };
-    }, [socket, reload]);
-
-    const onlineIds = new Set(online.map((member) => member._id));
-
-    return <>
-      <PageTitle icon={Users} title="Team Members" subtitle="Profiles, roles, presence, skills, and account links." action={<Button onClick={sendInvite} disabled={loading}>{loading && <Loader2 className="h-4 w-4 animate-spin" />}Invite</Button>} />
-      <Panel className="mb-4">
-        <div className="grid gap-3 md:grid-cols-[1fr_180px_auto_auto]">
-          <Input required type="email" placeholder="Email address" value={invite.email} onChange={(e) => setInvite({ ...invite, email: e.target.value })} />
-          <Select value={invite.role} onChange={(e) => setInvite({ ...invite, role: e.target.value })}><option>Admin</option><option>Member</option><option>Viewer</option></Select>
-          <Button onClick={sendInvite} disabled={loading}><Mail className="h-4 w-4" />Send Email Invite</Button>
-          <Button variant="ghost" onClick={createShareLink} disabled={loading}><Copy className="h-4 w-4" />Share Link</Button>
+  return <>
+    <PageTitle icon={CalendarDays} title="Calendar" subtitle="Schedule tasks by due date and keep delivery work visible." />
+    <Panel className="mb-4">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex min-w-0 items-center gap-2">
+          <Button variant="ghost" onClick={() => move(-1)}><ChevronLeft className="h-4 w-4" /></Button>
+          <div className="min-w-0 px-1">
+            <div className="truncate text-lg font-bold">{rangeLabel}</div>
+            <div className="text-xs text-slate-500">{filteredTasks.length} scheduled tasks</div>
+          </div>
+          <Button variant="ghost" onClick={() => move(1)}><ChevronRight className="h-4 w-4" /></Button>
         </div>
-        {link && <div className="mt-3 flex flex-wrap items-center gap-2 rounded-md bg-slate-100 p-3 text-sm dark:bg-slate-900"><span>Invite link:</span><a className="font-semibold text-violet-600" href={link}>{link}</a><Button variant="ghost" onClick={() => navigator.clipboard?.writeText(link)}>Copy</Button></div>}
-      </Panel>
-
-      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-        {members.map((member) => (
-          <Panel key={member._id}>
-            <div className="flex items-start justify-between gap-3">
-              <div className="flex min-w-0 gap-3">
-                <Avatar user={member} />
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2 font-semibold">
-                    <span className="truncate">{member.name}</span>
-                    <span className={`h-2 w-2 rounded-full ${onlineIds.has(member._id) ? "bg-emerald-400" : "bg-slate-300"}`} />
-                  </div>
-                  <div className="text-xs text-slate-400">{onlineIds.has(member._id) ? "Online now" : member.lastSeenAt ? `Last seen ${timeAgo(member.lastSeenAt)}` : "Offline"}</div>
-                </div>
-              </div>
-              <Select className="w-32" value={member.role} onChange={(e) => changeRole(member, e.target.value)}>
-                <option>Owner</option>
-                <option>Admin</option>
-                <option>Member</option>
-                <option>Viewer</option>
-              </Select>
-            </div>
-            <p className="mt-3 min-h-10 text-sm text-slate-500">{member.bio || "No bio added."}</p>
-            <div className="mt-3 flex flex-wrap gap-1">{member.skills?.map((skill) => <Badge key={skill}>{skill}</Badge>)}</div>
-            <div className="mt-3 flex items-center justify-between gap-2">
-              <div className="text-xs text-slate-500">{member.email}</div>
-              <div className="flex gap-2">
-                <Button variant="ghost" onClick={() => setConfirm({ id: member._id, label: member.name })}><Trash2 className="h-4 w-4" /></Button>
-              </div>
-            </div>
-          </Panel>
-        ))}
-      </div>
-
-      <ConfirmModal item={confirm} loading={loading} onCancel={() => setConfirm(null)} onConfirm={remove} />
-    </>;
+        <div className="flex flex-wrap gap-2">
+          {["month", "week", "day"].map((mode) => <button key={mode} type="button" onClick={() => setView(mode)} className={`min-h-10 rounded-lg border px-3 text-sm font-semibold capitalize transition ${view === mode ? "border-slate-950 bg-slate-950 text-white dark:border-white dark:bg-white dark:text-slate-950" : "border-[var(--line)] bg-white/65 text-slate-600 hover:bg-white dark:bg-white/5 dark:text-slate-300"}`}>{mode}</button>)}
+          <Button variant="ghost" onClick={() => { setCursor(new Date()); setSelectedDate(new Date()); }}>Today</Button>
         </div>
       </div>
       <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
@@ -587,7 +553,7 @@ export function CalendarPage() {
     </Panel>
     <Panel className="mb-4">
       <h2 className="mb-3 font-semibold">{editingId ? "Edit Calendar Task" : `Create Task for ${format(selectedDate, "MMM d")}`}</h2>
-      <div className="grid gap-3 xl:grid-cols-[minmax(220px,1.2fr)_minmax(160px,.8fr)_minmax(140px,.7fr)_100px_130px_150px_minmax(140px,.8fr)_auto]">
+      <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 2xl:grid-cols-[minmax(220px,1.2fr)_minmax(150px,.8fr)_minmax(140px,.7fr)_90px_130px_145px_minmax(130px,.8fr)_minmax(90px,auto)]">
         <Input id="calendar-task-title" placeholder="Task title" value={taskForm.title} onChange={(e) => setTaskForm({ ...taskForm, title: e.target.value })} />
         <Select value={taskForm.project} onChange={(e) => setTaskForm({ ...taskForm, project: e.target.value })}>{projects.map((project) => <option key={project._id} value={project._id}>{project.name}</option>)}</Select>
         <Select value={taskForm.assignee} onChange={(e) => setTaskForm({ ...taskForm, assignee: e.target.value })}><option value="">Unassigned</option>{members.map((member) => <option key={member._id} value={member._id}>{member.name}</option>)}</Select>
@@ -595,24 +561,67 @@ export function CalendarPage() {
         <Select value={taskForm.status} onChange={(e) => setTaskForm({ ...taskForm, status: e.target.value })}>{statuses.map((status) => <option key={status}>{status}</option>)}</Select>
         <Input type="date" value={taskForm.dueDate} onChange={(e) => setTaskForm({ ...taskForm, dueDate: e.target.value })} />
         <Input placeholder="Labels" value={taskForm.labels} onChange={(e) => setTaskForm({ ...taskForm, labels: e.target.value })} />
-        <Button onClick={saveCalendarTask} disabled={saving}>{saving && <Loader2 className="h-4 w-4 animate-spin" />}{editingId ? "Save" : "Add"}</Button>
+        <Button className="w-full" onClick={saveCalendarTask} disabled={saving}>{saving && <Loader2 className="h-4 w-4 animate-spin" />}{editingId ? "Save" : "Add"}</Button>
       </div>
       <Textarea className="mt-3 min-h-20" placeholder="Description" value={taskForm.description} onChange={(e) => setTaskForm({ ...taskForm, description: e.target.value })} />
       {editingId && <Button variant="ghost" className="mt-3" onClick={() => { setEditingId(""); setTaskForm({ ...emptyTaskForm, project: projects[0]?._id || "", assignee: members[0]?._id || "", dueDate: format(selectedDate, "yyyy-MM-dd") }); }}><X className="h-4 w-4" />Cancel Edit</Button>}
     </Panel>
     {!!overdueTasks.length && <div className="mb-4 rounded-xl border border-rose-200 bg-rose-50/80 p-3 text-sm text-rose-700 dark:border-rose-400/25 dark:bg-rose-500/10 dark:text-rose-200"><div className="mb-2 flex items-center gap-2 font-semibold"><AlertCircle className="h-4 w-4" />Overdue tasks</div><div className="flex flex-wrap gap-2">{overdueTasks.slice(0, 8).map((task) => <button key={task._id} onClick={() => setSelectedTask(task)} className="rounded-full bg-white/80 px-3 py-1 text-xs font-semibold dark:bg-white/10">{task.title}</button>)}</div></div>}
-    <div className={`grid gap-3 ${view === "day" ? "grid-cols-1" : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-7"}`}>
+    {!tasks.length && <Empty title="No tasks available yet. Create a task to populate the calendar." />}
+    <div className={`grid min-w-0 gap-3 ${calendarGridClass}`}>
       {visibleDays.map((day) => {
-        const dayTasks = filteredTasks.filter((task) => isSameDay(new Date(task.dueDate), day));
-        return <button key={day.toISOString()} onClick={() => startCreate(day)} onDragOver={(event) => event.preventDefault()} onDrop={(event) => { event.preventDefault(); const task = tasks.find((item) => item._id === event.dataTransfer.getData("text/task-id")); if (task) moveTaskToDate(task, day); }} className={`min-h-36 rounded-xl border p-3 text-left transition hover:bg-white dark:hover:bg-white/8 ${isSameDay(day, selectedDate) ? "border-slate-950 bg-white shadow-[0_12px_30px_rgba(15,23,42,.08)] dark:border-white dark:bg-white/8" : "border-[var(--line)] bg-white/55 dark:bg-white/5"} ${view === "month" && !isSameMonth(day, cursor) ? "opacity-45" : ""}`}>
-          <div className="mb-2 flex items-center justify-between"><span className={`text-sm font-bold ${isToday(day) ? "rounded-full bg-slate-950 px-2 py-1 text-white dark:bg-white dark:text-slate-950" : ""}`}>{format(day, view === "month" ? "d" : "EEE, MMM d")}</span><span className="text-xs text-slate-500">{dayTasks.length}</span></div>
-          <div className="space-y-2">{dayTasks.slice(0, view === "month" ? 3 : 12).map((task) => <div key={task._id} draggable onDragStart={(event) => event.dataTransfer.setData("text/task-id", task._id)} onClick={(event) => { event.stopPropagation(); setSelectedTask(task); }} className="rounded-lg border border-[var(--line)] bg-white/80 p-2 text-xs shadow-sm dark:bg-carbon/80"><div className="mb-1 flex items-center gap-1"><Badge tone={priorities[task.priority]}>{task.priority}</Badge><span className="truncate font-semibold">{task.project?.key || "TASK"}</span></div><div className="line-clamp-2 font-medium">{task.title}</div></div>)}</div>
-        </button>;
+        const dayTasks = filteredTasks.filter((task) =>
+          task.dueDate && isSameDay(new Date(task.dueDate), day)
+        );
+
+        return (
+          <button
+            key={day.toISOString()}
+            type="button"
+            onClick={() => startCreate(day)}
+            onDragOver={(event) => event.preventDefault()}
+            onDrop={(event) => {
+              event.preventDefault();
+              const task = tasks.find((item) => item._id === event.dataTransfer.getData("text/task-id"));
+              if (task) moveTaskToDate(task, day);
+            }}
+            className={`min-h-32 min-w-0 overflow-hidden rounded-xl border p-3 text-left transition hover:bg-white dark:hover:bg-white/8 ${isSameDay(day, selectedDate) ? "border-slate-950 bg-white shadow-[0_12px_30px_rgba(15,23,42,.08)] dark:border-white dark:bg-white/8" : "border-[var(--line)] bg-white/55 dark:bg-white/5"} ${view === "month" && !isSameMonth(day, cursor) ? "opacity-45" : ""}`}
+          >
+            <div className="mb-2 flex items-center justify-between">
+              <span className={`text-sm font-bold ${isToday(day) ? "rounded-full bg-slate-950 px-2 py-1 text-white dark:bg-white dark:text-slate-950" : ""}`}>
+                {format(day, view === "month" ? "d" : "EEE, MMM d")}
+              </span>
+              <span className="text-xs text-slate-500">{dayTasks.length}</span>
+            </div>
+
+            <div className="min-w-0 space-y-2">
+              {dayTasks.slice(0, view === "month" ? 3 : 12).map((task) => (
+                <div
+                  key={task._id}
+                  draggable
+                  onDragStart={(event) => event.dataTransfer.setData("text/task-id", task._id)}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    setSelectedTask(task);
+                  }}
+                  className="min-w-0 overflow-hidden rounded-lg border border-[var(--line)] bg-white/80 p-2 text-xs shadow-sm dark:bg-carbon/80"
+                >
+                  <div className="mb-1 flex min-w-0 items-center gap-1">
+                    <Badge tone={priorities[task.priority]}>{task.priority}</Badge>
+                    <span className="min-w-0 truncate font-semibold">{task.project?.key || "TASK"}</span>
+                  </div>
+                  <div className="line-clamp-2 font-medium">{task.title}</div>
+                </div>
+              ))}
+              {dayTasks.length > (view === "month" ? 3 : 12) && <div className="truncate text-xs font-semibold text-slate-500">+{dayTasks.length - (view === "month" ? 3 : 12)} more</div>}
+            </div>
+          </button>
+        );
       })}
     </div>
     <Panel className="mt-4">
       <h2 className="mb-3 font-semibold">Tasks on {format(selectedDate, "MMMM d, yyyy")}</h2>
-      {selectedTasks.length ? <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">{selectedTasks.map((task) => <button key={task._id} onClick={() => setSelectedTask(task)} className="rounded-xl border border-[var(--line)] bg-white/70 p-3 text-left text-sm transition hover:bg-white dark:bg-white/5 dark:hover:bg-white/8"><div className="mb-2 flex items-center gap-2"><Badge tone={priorities[task.priority]}>{task.priority}</Badge><span className="text-xs font-semibold text-slate-500">{task.status}</span></div><div className="font-semibold">{task.title}</div><div className="mt-1 text-xs text-slate-500">{task.project?.name || "No project"}</div></button>)}</div> : <Empty title="No tasks scheduled for this date." />}
+      {selectedTasks.length ? <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">{selectedTasks.map((task) => <button key={task._id} onClick={() => setSelectedTask(task)} className="min-w-0 rounded-xl border border-[var(--line)] bg-white/70 p-3 text-left text-sm transition hover:bg-white dark:bg-white/5 dark:hover:bg-white/8"><div className="mb-2 flex min-w-0 items-center gap-2"><Badge tone={priorities[task.priority]}>{task.priority}</Badge><span className="truncate text-xs font-semibold text-slate-500">{task.status}</span></div><div className="truncate font-semibold">{task.title}</div><div className="mt-1 truncate text-xs text-slate-500">{task.project?.name || "No project"}</div></button>)}</div> : <Empty title="No tasks scheduled for this date." />}
     </Panel>
     {selectedTask && <div className="fixed inset-0 z-50 flex items-center justify-center bg-night/55 p-4 backdrop-blur-sm" onMouseDown={() => setSelectedTask(null)}>
       <div className="glass-card w-full max-w-lg rounded-2xl p-5" onMouseDown={(event) => event.stopPropagation()}>
@@ -778,7 +787,9 @@ export function TeamPage() {
   const [invite, setInvite] = useState({ email: "", role: "Member" });
   const [link, setLink] = useState("");
   const [loading, setLoading] = useState(false);
+  const [copied, setCopied] = useState(false);
   const [confirm, setConfirm] = useState(null);
+  const [editingRoleId, setEditingRoleId] = useState("");
   async function sendInvite() {
     if (!invite.email.trim()) return toast.error("Enter an email address");
     setLoading(true);
@@ -800,8 +811,19 @@ export function TeamPage() {
       setLoading(false);
     }
   }
+  async function copyToClipboard() {
+    try {
+      await navigator.clipboard.writeText(link);
+      setCopied(true);
+      toast.success("Invite link copied to clipboard");
+      setTimeout(() => setCopied(false), 2000);
+    } catch (error) {
+      toast.error("Failed to copy to clipboard");
+    }
+  }
   async function changeRole(member, role) {
     await api.patch(`/workspaces/${activeWorkspaceId}/members/${member._id}`, { role });
+    setEditingRoleId("");
     await reload();
     toast.success("Role updated");
   }
@@ -826,7 +848,48 @@ export function TeamPage() {
     };
   }, [socket, reload]);
   const onlineIds = new Set(online.map((member) => member._id));
-  return <><PageTitle icon={Users} title="Team Members" subtitle="Profiles, roles, presence, skills, and account links." action={<Button onClick={sendInvite} disabled={loading}>{loading && <Loader2 className="h-4 w-4 animate-spin" />}Invite</Button>} /><Panel className="mb-4"><div className="grid gap-3 md:grid-cols-[1fr_180px_auto_auto]"><Input required type="email" placeholder="Email address" value={invite.email} onChange={(e) => setInvite({ ...invite, email: e.target.value })} /><Select value={invite.role} onChange={(e) => setInvite({ ...invite, role: e.target.value })}><option>Admin</option><option>Member</option><option>Viewer</option></Select><Button onClick={sendInvite} disabled={loading}><Mail className="h-4 w-4" />Send Email Invite</Button><Button variant="ghost" onClick={createShareLink} disabled={loading}><Copy className="h-4 w-4" />Share Link</Button></div>{link && <div className="mt-3 flex flex-wrap items-center gap-2 rounded-md bg-slate-100 p-3 text-sm dark:bg-slate-900"><span>Invite link:</span><a className="font-semibold text-violet-600" href={link}>{link}</a><Button variant="ghost" onClick={() => navigator.clipboard?.writeText(link)}>Copy</Button></div>}</Panel><div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">{members.map((member) => <Panel key={member._id}><div className="flex items-start justify-between gap-3"><div className="flex min-w-0 gap-3"><Avatar user={member} /><div><div className="flex items-center gap-2 font-semibold">{member.name}<span className={`h-2 w-2 rounded-full ${onlineIds.has(member._id) ? "bg-emerald-400" : "bg-slate-300"}`} /></div><div className="text-xs text-slate-400">{onlineIds.has(member._id) ? "Online now" : member.lastSeenAt ? `Last seen ${timeAgo(member.lastSeenAt)}` : "Offline"}</div></div></div><Select className="w-32" value={member.role} onChange={(e) => changeRole(member, e.target.value)}><option>Owner</option><option>Admin</option><option>Member</option><option>Viewer</option></Select></div><p className="mt-3 min-h-10 text-sm text-slate-500">{member.bio || "No bio added."}</p><div className="mt-3 flex flex-wrap gap-1">{member.skills?.map((skill) => <Badge key={skill}>{skill}</Badge>)}</div><div className="mt-4 flex flex-wrap gap-2 text-sm">{member.github && <a className="inline-flex items-center gap-1 font-semibold text-violet-600" href={member.github} target="_blank" rel="noreferrer"><Github className="h-4 w-4" />GitHub</a>}{member.linkedin && <a className="inline-flex items-center gap-1 font-semibold text-violet-600" href={member.linkedin} target="_blank" rel="noreferrer"><Linkedin className="h-4 w-4" />LinkedIn</a>}</div><Button variant="ghost" className="mt-4 w-full" onClick={() => setConfirm({ id: member._id, label: member.name })}><Trash2 className="h-4 w-4" />Remove</Button></Panel>)}</div><ConfirmModal item={confirm} loading={loading} onCancel={() => setConfirm(null)} onConfirm={remove} /></>;
+  return <>
+    <PageTitle icon={Users} title="Team Members" subtitle="Profiles, roles, presence, skills, and account links." action={<Button onClick={sendInvite} disabled={loading}>{loading && <Loader2 className="h-4 w-4 animate-spin" />}Invite</Button>} />
+    <Panel className="mb-4">
+      <div className="grid min-w-0 gap-3 md:grid-cols-[minmax(0,1fr)_160px] xl:grid-cols-[minmax(0,1fr)_160px_auto_auto]">
+        <Input required type="email" placeholder="Email address" value={invite.email} onChange={(e) => setInvite({ ...invite, email: e.target.value })} />
+        <Select value={invite.role} onChange={(e) => setInvite({ ...invite, role: e.target.value })}><option>Admin</option><option>Member</option><option>Viewer</option></Select>
+        <Button onClick={sendInvite} disabled={loading}><Mail className="h-4 w-4" /><span className="truncate">Send Email Invite</span></Button>
+        <Button variant="ghost" onClick={createShareLink} disabled={loading}><Copy className="h-4 w-4" /><span className="truncate">Share Link</span></Button>
+      </div>
+      {link && <div className="mt-3 flex min-w-0 flex-wrap items-center gap-2 rounded-md bg-slate-100 p-3 text-sm dark:bg-slate-900 border border-[var(--line)]"><span className="font-semibold">Invite link:</span><span className="min-w-0 flex-1 truncate font-semibold text-violet-600">{link}</span><Button variant="ghost" onClick={copyToClipboard} className="shrink-0">{copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}</Button></div>}
+    </Panel>
+    <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+      {members.map((member) => {
+        const isEditingRole = editingRoleId === member._id;
+        return <Panel key={member._id}>
+          <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div className="flex min-w-0 gap-3">
+              <Avatar user={member} />
+              <div className="min-w-0">
+                <div className="flex min-w-0 items-center gap-2 font-semibold">
+                  <span className="truncate">{member.name}</span>
+                  <span className={`h-2 w-2 shrink-0 rounded-full ${onlineIds.has(member._id) ? "bg-emerald-400" : "bg-slate-300"}`} />
+                </div>
+                <div className="truncate text-xs text-slate-400">{onlineIds.has(member._id) ? "Online now" : member.lastSeenAt ? `Last seen ${timeAgo(member.lastSeenAt)}` : "Offline"}</div>
+              </div>
+            </div>
+            <div className="flex shrink-0 items-center gap-2">
+              {isEditingRole ? <Select className="h-9 min-h-9 w-32 text-xs" value={member.role} onChange={(e) => changeRole(member, e.target.value)} onBlur={() => setEditingRoleId("")}><option>Owner</option><option>Admin</option><option>Member</option><option>Viewer</option></Select> : <button type="button" onClick={() => setEditingRoleId(member._id)} className="inline-flex h-8 max-w-32 items-center rounded-full border border-[var(--line)] bg-white/70 px-3 text-xs font-semibold text-slate-600 transition hover:bg-white dark:bg-white/8 dark:text-slate-300"><span className="truncate">{member.role || "Member"}</span></button>}
+            </div>
+          </div>
+          <p className="mt-3 min-h-10 break-words text-sm text-slate-500">{member.bio || "No bio added."}</p>
+          <div className="mt-3 flex min-w-0 flex-wrap gap-1">{member.skills?.map((skill) => <Badge key={skill}>{skill}</Badge>)}</div>
+          <div className="mt-4 flex min-w-0 flex-wrap gap-2 text-sm">
+            {member.github && <a className="inline-flex min-w-0 items-center gap-1 font-semibold text-violet-600" href={member.github} target="_blank" rel="noreferrer"><Github className="h-4 w-4 shrink-0" /><span className="truncate">GitHub</span></a>}
+            {member.linkedin && <a className="inline-flex min-w-0 items-center gap-1 font-semibold text-violet-600" href={member.linkedin} target="_blank" rel="noreferrer"><Linkedin className="h-4 w-4 shrink-0" /><span className="truncate">LinkedIn</span></a>}
+          </div>
+          <Button variant="ghost" className="mt-4 w-full" onClick={() => setConfirm({ id: member._id, label: member.name })}><Trash2 className="h-4 w-4" />Remove</Button>
+        </Panel>;
+      })}
+    </div>
+    <ConfirmModal item={confirm} loading={loading} onCancel={() => setConfirm(null)} onConfirm={remove} />
+  </>;
 }
 
 export function NotificationsPage() {
@@ -873,21 +936,18 @@ export function ProfilePage() {
 export function SettingsPage() {
   const { user, setUser } = useAuth();
   const [preferences, setPreferences] = useState(user.preferences || {});
+
+  useEffect(() => {
+    setPreferences(user.preferences || {});
+  }, [user.preferences]);
+
   async function save() {
     const { data } = await api.patch("/auth/profile", { preferences });
     setUser(data);
-    // Apply theme preference immediately
-    const theme = preferences.theme || "system";
-    if (theme === "dark") document.documentElement.classList.add("dark");
-    else if (theme === "light") document.documentElement.classList.remove("dark");
-    else {
-      const isDark = typeof window !== "undefined" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
-      document.documentElement.classList.toggle("dark", isDark);
-    }
-    localStorage.setItem("codesphere_theme", theme);
     toast.success("Settings saved");
   }
-  return <><PageTitle icon={Settings} title="Settings" subtitle="Personal preferences, notification rules, security settings, and account management." /><Panel className="max-w-xl"><Select className="mb-3" value={preferences.theme || "system"} onChange={(e) => setPreferences({ ...preferences, theme: e.target.value })}><option value="system">System theme</option><option value="light">Light</option><option value="dark">Dark</option></Select>{["emailNotifications", "pushNotifications", "weeklyDigest"].map((key) => <label key={key} className="mb-3 flex items-center justify-between rounded-md border border-slate-200 p-3 text-sm dark:border-slate-800"><span>{key.replace(/([A-Z])/g, " $1")}</span><input type="checkbox" checked={Boolean(preferences[key])} onChange={(e) => setPreferences({ ...preferences, [key]: e.target.checked })} /></label>)}<Button onClick={save}>Save Settings</Button></Panel></>;
+
+  return <><PageTitle icon={Settings} title="Settings" subtitle="Personal preferences, notification rules, security settings, and account management." /><Panel className="max-w-xl"><div className="mb-4 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-600 dark:border-slate-800 dark:bg-slate-900/50 dark:text-slate-300"><div className="font-semibold mb-1">Theme</div><div>Use the Moon/Sun toggle in the top navigation to control application theme.</div></div>{["emailNotifications", "pushNotifications", "weeklyDigest"].map((key) => <label key={key} className="mb-3 flex items-center justify-between rounded-md border border-slate-200 p-3 text-sm dark:border-slate-800"><span>{key.replace(/([A-Z])/g, " $1")}</span><input type="checkbox" checked={Boolean(preferences[key])} onChange={(e) => setPreferences({ ...preferences, [key]: e.target.checked })} /></label>)}<Button onClick={save}>Save Settings</Button></Panel></>;
 }
 
 export function BillingPage() {
@@ -935,34 +995,10 @@ export function BillingPage() {
   async function initiatePayment(plan, period) {
     setLoading(true);
     try {
-      const { data } = await api.post("/billing/create-order", { plan, billingPeriod: period });
+      const { data } = await api.post("/billing/create-order", { plan, billingPeriod: period, paymentMethod });
       setOrderDetails(data);
       setShowPayment(true);
-      
-      if (data.orderId.startsWith("mock_order_")) {
-        setTimeout(async () => {
-          try {
-            const verifyRes = await api.post("/billing/verify-payment", {
-              razorpayOrderId: data.orderId,
-              razorpayPaymentId: `mock_pay_${Math.random().toString(36).slice(2)}`,
-              razorpaySignature: "mock_signature",
-              plan,
-              billingPeriod: period
-            });
-            setUser(verifyRes.data.user);
-            setShowPayment(false);
-            toast.success("Test Mode: " + verifyRes.data.message);
-            api.get("/billing").then(({ data: billingData }) => setBilling(billingData));
-          } catch (error) {
-            toast.error("Failed to verify simulated payment");
-          } finally {
-            setLoading(false);
-          }
-        }, 1500);
-        return;
-      }
-      
-      // Load Razorpay script if not already loaded
+
       if (!window.Razorpay) {
         const script = document.createElement("script");
         script.src = "https://checkout.razorpay.com/v1/checkout.js";
@@ -973,7 +1009,7 @@ export function BillingPage() {
         openRazorpayCheckout(data);
       }
     } catch (error) {
-      toast.error("Failed to initiate payment");
+      toast.error(error.response?.data?.message || "Failed to initiate payment");
     } finally {
       setLoading(false);
     }
@@ -1047,6 +1083,10 @@ export function BillingPage() {
     const rzp = new window.Razorpay(options);
     rzp.open();
     rzp.on("payment.failed", function(response) {
+      api.post("/billing/payment-failed", {
+        razorpayOrderId: order.orderId,
+        reason: response.error?.description || response.error?.reason || "Payment failed"
+      }).catch(() => {});
       toast.error("Payment failed");
       setShowPayment(false);
     });
@@ -1055,7 +1095,7 @@ export function BillingPage() {
   async function switchToFree() {
     setLoading(true);
     try {
-      const { data } = await api.post("/billing/create-order", { plan: "free", billingPeriod: "monthly" });
+      const { data } = await api.post("/billing/upgrade", { plan: "free" });
       setUser(data.user);
       toast.success(data.message);
       api.get("/billing").then(({ data: billingData }) => setBilling(billingData));
@@ -1068,8 +1108,37 @@ export function BillingPage() {
 
   if (!billing) return <div className="flex items-center justify-center min-h-64"><Loader2 className="h-8 w-8 animate-spin text-violet-500" /></div>;
 
+  const currentPlan = user.plan === "pro" ? "Pro" : "Free";
+
   return <>
     <PageTitle icon={CreditCard} title="Billing & Subscription" subtitle="Manage your subscription, payment methods, and billing history." />
+    
+    <Panel className="mb-8 bg-gradient-to-r from-violet-500/10 to-purple-500/10 border-violet-200/50 dark:border-violet-400/20">
+      <div className="flex items-center justify-between">
+        <div>
+          <div className="text-sm text-slate-600 dark:text-slate-400">Current Plan</div>
+          <div className="text-3xl font-black text-violet-600 dark:text-violet-400">{currentPlan}</div>
+          <div className="text-sm text-slate-600 dark:text-slate-400 mt-1">{user.plan === "pro" ? "Unlimited projects, members, and workspaces" : "2 workspaces, 5 projects per workspace, limited features"}</div>
+        </div>
+        {user.plan === "free" && <Badge tone="amber" className="px-4 py-2">Upgrade Available</Badge>}
+        {user.plan === "pro" && <Badge tone="teal" className="px-4 py-2">Active</Badge>}
+      </div>
+    </Panel>
+    
+    {billing.missingPaymentEnv && billing.missingPaymentEnv.length > 0 && (
+      <Panel className="mb-8 border-amber-200 bg-amber-50 dark:border-amber-400/20 dark:bg-amber-500/10">
+        <div className="flex gap-3">
+          <AlertCircle className="h-5 w-5 shrink-0 text-amber-600 dark:text-amber-400 mt-0.5" />
+          <div>
+            <div className="font-semibold text-amber-900 dark:text-amber-200">Payment Not Configured</div>
+            <div className="text-sm text-amber-800 dark:text-amber-300 mt-1">Razorpay payment integration is not configured. Set the following environment variables:</div>
+            <div className="mt-2 space-y-1 text-sm font-mono text-amber-800 dark:text-amber-300">
+              {billing.missingPaymentEnv.map((env) => <div key={env}>- {env}</div>)}
+            </div>
+          </div>
+        </div>
+      </Panel>
+    )}
     
     <div className="grid gap-6 mb-8">
       <div className="flex items-center gap-4">
@@ -1092,7 +1161,7 @@ export function BillingPage() {
                 <Badge>{user.plan === plan.id ? "Current" : "Available"}</Badge>
               </div>
               <div className="mb-4">
-                <span className="text-4xl font-black">₹{price}</span>
+                <span className="text-4xl font-black">INR {price}</span>
                 <span className="text-sm text-slate-500">/{billingPeriod}</span>
               </div>
               <div className="space-y-3 mb-6">
@@ -1121,6 +1190,11 @@ export function BillingPage() {
                   {plan.id === "free" ? "Switch to Free" : "Upgrade to Pro"}
                 </Button>
               )}
+              {plan.id === user.plan && (
+                <Button variant="ghost" className="w-full" disabled>
+                  <Check className="h-4 w-4 mr-2" />Current Plan
+                </Button>
+              )}
             </Panel>
           );
         })}
@@ -1129,28 +1203,35 @@ export function BillingPage() {
 
     <Panel>
       <h2 className="text-lg font-semibold mb-4">Payment Methods</h2>
-      <div className="grid gap-3 md:grid-cols-4">
-        {[
-          { id: "razorpay", name: "Razorpay", icon: "💳", desc: "Cards, UPI, Netbanking, Wallets" },
-          { id: "upi", name: "UPI", icon: "📱", desc: "Direct UPI payment" },
-          { id: "phonepe", name: "PhonePe", icon: "🟣", desc: "PhonePe wallet" },
-          { id: "gpay", name: "Google Pay", icon: "🔵", desc: "Google Pay UPI" }
-        ].map((method) => (
-          <button
-            key={method.id}
-            onClick={() => setPaymentMethod(method.id)}
-            className={`p-4 rounded-xl border-2 text-left transition ${
-              paymentMethod === method.id 
-                ? "border-violet-500 bg-violet-50 dark:bg-violet-500/10" 
-                : "border-[var(--line)] bg-white/60 hover:bg-white dark:bg-white/5"
-            }`}
-          >
-            <div className="text-2xl mb-2">{method.icon}</div>
-            <div className="font-semibold">{method.name}</div>
-            <div className="text-xs text-slate-500">{method.desc}</div>
-          </button>
-        ))}
-      </div>
+      {billing.razorpayConfigured ? (
+        <div className="grid gap-3 md:grid-cols-4">
+          {[
+            { id: "razorpay", name: "Razorpay", icon: "RZP", desc: "Cards, UPI, Netbanking, Wallets" },
+            { id: "upi", name: "UPI", icon: "UPI", desc: "Direct UPI payment" },
+            { id: "phonepe", name: "PhonePe", icon: "PP", desc: "PhonePe wallet" },
+            { id: "gpay", name: "Google Pay", icon: "GPay", desc: "Google Pay UPI" }
+          ].map((method) => (
+            <button
+              key={method.id}
+              onClick={() => setPaymentMethod(method.id)}
+              className={`p-4 rounded-xl border-2 text-left transition ${
+                paymentMethod === method.id 
+                  ? "border-violet-500 bg-violet-50 dark:bg-violet-500/10" 
+                  : "border-[var(--line)] bg-white/60 hover:bg-white dark:bg-white/5"
+              }`}
+            >
+              <div className="mb-2 text-sm font-black tracking-normal text-violet-600 dark:text-violet-300">{method.icon}</div>
+              <div className="font-semibold">{method.name}</div>
+              <div className="text-xs text-slate-500">{method.desc}</div>
+            </button>
+          ))}
+        </div>
+      ) : (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm dark:border-amber-400/20 dark:bg-amber-500/10">
+          <div className="font-semibold text-amber-900 dark:text-amber-200 mb-2">Payment Methods Not Available</div>
+          <p className="text-amber-800 dark:text-amber-300">Configure Razorpay to enable payment methods (UPI, Google Pay, PhonePe, Credit/Debit Cards).</p>
+        </div>
+      )}
     </Panel>
 
     {billing.paymentHistory && billing.paymentHistory.length > 0 && (
@@ -1160,8 +1241,8 @@ export function BillingPage() {
           {billing.paymentHistory.map((payment) => (
             <div key={payment._id} className="flex items-center justify-between p-3 rounded-lg border border-[var(--line)] bg-white/60 dark:bg-white/5">
               <div>
-                <div className="font-semibold">₹{payment.amount} - {payment.plan.charAt(0).toUpperCase() + payment.plan.slice(1)} Plan</div>
-                <div className="text-xs text-slate-500">{new Date(payment.createdAt).toLocaleDateString()} • {payment.billingPeriod}</div>
+                <div className="font-semibold">INR {payment.amount} - {payment.plan.charAt(0).toUpperCase() + payment.plan.slice(1)} Plan</div>
+                <div className="text-xs text-slate-500">{new Date(payment.createdAt).toLocaleDateString()} - {payment.billingPeriod}</div>
               </div>
               <Badge tone={payment.status === "completed" ? "teal" : payment.status === "pending" ? "amber" : "rose"}>
                 {payment.status.charAt(0).toUpperCase() + payment.status.slice(1)}
@@ -1171,30 +1252,41 @@ export function BillingPage() {
         </div>
       </Panel>
     )}
+    
+    {(!billing.paymentHistory || billing.paymentHistory.length === 0) && (
+      <Panel className="mt-6 border-slate-200 dark:border-slate-800">
+        <h2 className="text-lg font-semibold mb-4">Payment History</h2>
+        <div className="text-center py-6 text-slate-500">
+          <div className="text-sm">No payments yet</div>
+        </div>
+      </Panel>
+    )}
 
     {showPayment && orderDetails && (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-night/55 p-4 backdrop-blur-sm">
         <div className="glass-card w-full max-w-md rounded-2xl p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-bold">Complete Payment</h2>
-            <button onClick={() => setShowPayment(false)}><X className="h-5 w-5" /></button>
+            <button onClick={() => setShowPayment(false)} className="text-slate-400 hover:text-slate-600"><X className="h-5 w-5" /></button>
           </div>
           <div className="mb-4">
             <div className="text-sm text-slate-500">Amount</div>
-            <div className="text-3xl font-black">₹{orderDetails.amount / 100}</div>
+            <div className="text-3xl font-black">INR {orderDetails.amount / 100}</div>
           </div>
           <div className="mb-4">
-            <div className="text-sm text-slate-500">Payment Method</div>
-            <div className="font-semibold">{paymentMethod.charAt(0).toUpperCase() + paymentMethod.slice(1)}</div>
-          </div>
-          <div className="mb-4 p-3 rounded-lg bg-amber-50 border border-amber-200 text-sm text-amber-800 dark:bg-amber-500/10 dark:border-amber-400/20 dark:text-amber-200">
-            <div className="font-semibold mb-1">Test Mode</div>
-            <div>Use test card details: 4242 4242 4242 4242, any future date, any CVV</div>
+            <div className="text-sm text-slate-500">Billing Period</div>
+            <div className="font-semibold capitalize">{billingPeriod}</div>
           </div>
           {loading && (
-            <div className="flex items-center justify-center gap-2">
+            <div className="flex items-center justify-center gap-2 py-8">
               <Loader2 className="h-5 w-5 animate-spin text-violet-500" />
               <span>Processing payment...</span>
+            </div>
+          )}
+          {!loading && (
+            <div className="p-3 rounded-lg bg-blue-50 border border-blue-200 text-sm text-blue-800 dark:bg-blue-500/10 dark:border-blue-400/20 dark:text-blue-200">
+              <div className="font-semibold mb-1">Razorpay Checkout</div>
+              <div>Redirecting to Razorpay secure payment gateway...</div>
             </div>
           )}
         </div>
@@ -1207,17 +1299,52 @@ export function InvitePage() {
   const { activeWorkspaceId } = useAuth();
   const [invite, setInvite] = useState({ email: "", role: "Member" });
   const [link, setLink] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [copied, setCopied] = useState(false);
+  
   async function send() {
-    const { data } = await api.post(`/workspaces/${activeWorkspaceId}/invites`, invite);
-    setLink(data.inviteUrl);
-    toast.success(data.delivery?.status === "sent" ? "Invitation email sent" : "Invite link created");
+    if (!invite.email?.trim()) {
+      toast.error("Please enter an email address");
+      return;
+    }
+    setLoading(true);
+    try {
+      const { data } = await api.post(`/workspaces/${activeWorkspaceId}/invites`, invite);
+      setLink(data.inviteUrl);
+      toast.success(data.delivery?.status === "sent" ? "Invitation email sent" : "Invite link created");
+      setInvite({ email: "", role: "Member" });
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to send invite");
+    } finally {
+      setLoading(false);
+    }
   }
+  
   async function createShareLink() {
-    const { data } = await api.post(`/workspaces/${activeWorkspaceId}/invites/link`, { role: invite.role });
-    setLink(data.inviteUrl);
-    toast.success("Shareable invite link created");
+    setLoading(true);
+    try {
+      const { data } = await api.post(`/workspaces/${activeWorkspaceId}/invites/link`, { role: invite.role });
+      setLink(data.inviteUrl);
+      toast.success("Shareable invite link created");
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to create link");
+    } finally {
+      setLoading(false);
+    }
   }
-  return <><PageTitle icon={UserPlus} title="Invite Members" subtitle="Invite by email or generate a secure shareable workspace link." /><Panel className="max-w-lg"><Input className="mb-3" type="email" placeholder="Email address" value={invite.email} onChange={(e) => setInvite({ ...invite, email: e.target.value })} /><Select className="mb-3" value={invite.role} onChange={(e) => setInvite({ ...invite, role: e.target.value })}><option>Admin</option><option>Member</option><option>Viewer</option></Select><div className="flex flex-wrap gap-2"><Button onClick={send}><Mail className="h-4 w-4" />Send Email Invite</Button><Button variant="ghost" onClick={createShareLink}><Copy className="h-4 w-4" />Create Share Link</Button></div>{link && <div className="mt-4 rounded-md bg-slate-100 p-3 text-sm dark:bg-slate-900"><a className="font-semibold text-violet-600" href={link}>{link}</a></div>}<div className="mt-4 grid gap-2 text-sm text-slate-500"><div className="flex items-center gap-2"><Mail className="h-4 w-4" />Email invites are sent through configured SMTP.</div><div className="flex items-center gap-2"><UserPlus className="h-4 w-4" />Share links let authenticated users join automatically.</div></div></Panel></>;
+  
+  async function copyToClipboard() {
+    try {
+      await navigator.clipboard.writeText(link);
+      setCopied(true);
+      toast.success("Invite link copied to clipboard");
+      setTimeout(() => setCopied(false), 2000);
+    } catch (error) {
+      toast.error("Failed to copy to clipboard");
+    }
+  }
+  
+  return <><PageTitle icon={UserPlus} title="Invite Members" subtitle="Invite by email or generate a secure shareable workspace link." /><Panel className="max-w-lg"><Input className="mb-3" type="email" placeholder="Email address" value={invite.email} onChange={(e) => setInvite({ ...invite, email: e.target.value })} disabled={loading} /><Select className="mb-3" value={invite.role} onChange={(e) => setInvite({ ...invite, role: e.target.value })} disabled={loading}><option>Admin</option><option>Member</option><option>Viewer</option></Select><div className="flex flex-wrap gap-2"><Button onClick={send} disabled={loading}>{loading && <Loader2 className="h-4 w-4 animate-spin mr-2" />}<Mail className="h-4 w-4" />Send Email Invite</Button><Button variant="ghost" onClick={createShareLink} disabled={loading}>{loading && <Loader2 className="h-4 w-4 animate-spin mr-2" />}<Copy className="h-4 w-4" />Create Share Link</Button></div>{link && <div className="mt-4 rounded-md bg-slate-100 p-3 text-sm dark:bg-slate-900 border border-[var(--line)]"><div className="flex items-center gap-2 justify-between"><div className="min-w-0 flex-1"><span className="font-semibold text-violet-600 block truncate">{link}</span></div><Button size="sm" variant="ghost" onClick={copyToClipboard} className="shrink-0">{copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}</Button></div></div>}<div className="mt-4 grid gap-2 text-sm text-slate-500"><div className="flex items-center gap-2"><Mail className="h-4 w-4" />Email invites are sent through configured SMTP.</div><div className="flex items-center gap-2"><UserPlus className="h-4 w-4" />Share links let authenticated users join automatically.</div></div></Panel></>;
 }
 
 export function HelpPage() {

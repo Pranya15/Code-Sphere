@@ -3,11 +3,15 @@ import { Loader2, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 
 export function Panel({ children, className = "" }) {
-  return <motion.section initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.22 }} className={`glass-card rounded-xl p-4 shadow-panel transition hover:-translate-y-0.5 hover:shadow-glow ${className}`}>{children}</motion.section>;
+  return <motion.section initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.22 }} className={`glass-card min-w-0 rounded-xl p-4 shadow-panel transition hover:-translate-y-0.5 hover:shadow-glow ${className}`}>{children}</motion.section>;
 }
 
-export function Button({ children, className = "", variant = "primary", ...props }) {
-  const baseStyles = "inline-flex min-h-10 items-center justify-center gap-2 rounded-lg px-3 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg)] disabled:cursor-not-allowed disabled:opacity-60";
+export function Button({ children, className = "", variant = "primary", size = "md", ...props }) {
+  const sizes = {
+    sm: "min-h-8 px-2.5 text-xs",
+    md: "min-h-10 px-3 text-sm"
+  };
+  const baseStyles = `inline-flex min-w-0 items-center justify-center gap-2 rounded-lg font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg)] disabled:cursor-not-allowed disabled:opacity-60 ${sizes[size] || sizes.md}`;
   const styles = variant === "ghost"
     ? "border border-[var(--line)] bg-white/50 text-slate-700 hover:border-violet-300 hover:bg-white/75 dark:bg-white/10 dark:text-slate-200 dark:hover:bg-white/12"
     : "aurora-gradient text-white shadow-[0_12px_34px_rgba(124,58,237,0.28)] hover:brightness-110";
@@ -26,9 +30,9 @@ export function Textarea({ className = "", ...props }) {
   return <textarea className={`min-h-28 w-full rounded-lg border border-[var(--line)] bg-white/70 p-3 text-sm text-[var(--text)] outline-none transition placeholder:text-slate-400 focus:border-violet-500 focus:ring-4 focus:ring-[var(--ring)] focus-visible:ring-violet-500 dark:bg-white/10 dark:text-[var(--text)] ${className}`} {...props} />;
 }
 
-export function Badge({ children, tone = "slate" }) {
-  const tones = { red: "bg-rose-500/10 text-rose-600 dark:text-rose-300", amber: "bg-amber-400/15 text-amber-700 dark:text-amber-200", green: "bg-emerald-400/15 text-emerald-700 dark:text-emerald-200", teal: "bg-cyan-400/15 text-cyan-700 dark:text-cyan-200", slate: "bg-violet-500/10 text-violet-700 dark:text-violet-200" };
-  return <span className={`inline-flex items-center rounded-full border border-white/20 px-2.5 py-1 text-xs font-semibold ${tones[tone]}`}>{children}</span>;
+export function Badge({ children, tone = "slate", className = "" }) {
+  const tones = { red: "bg-rose-500/10 text-rose-600 dark:text-rose-300", rose: "bg-rose-500/10 text-rose-600 dark:text-rose-300", amber: "bg-amber-400/15 text-amber-700 dark:text-amber-200", green: "bg-emerald-400/15 text-emerald-700 dark:text-emerald-200", teal: "bg-cyan-400/15 text-cyan-700 dark:text-cyan-200", violet: "bg-violet-500/10 text-violet-700 dark:text-violet-200", slate: "bg-violet-500/10 text-violet-700 dark:text-violet-200" };
+  return <span className={`inline-flex max-w-full items-center rounded-full border border-white/20 px-2.5 py-1 text-xs font-semibold ${tones[tone] || tones.slate} ${className}`}><span className="truncate">{children}</span></span>;
 }
 
 export function Loading() {

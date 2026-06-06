@@ -7,6 +7,7 @@ import Task from "../models/Task.js";
 import User from "../models/User.js";
 import { requireAuth, requireWorkspaceRole } from "../middleware/auth.js";
 import { runGemini } from "../services/gemini.js";
+import { wrapAsyncRouter } from "../utils/wrapAsyncRouter.js";
 
 const router = express.Router();
 router.use(requireAuth);
@@ -27,17 +28,40 @@ router.get("/:workspaceId", requireWorkspaceRole, async (req, res) => {
 });
 
 router.post("/:workspaceId/ai", requireWorkspaceRole, async (req, res) => {
-  const [projects, tasks, docs, snippets] = await Promise.all([
+  if (!req.body.question?.trim()) return res.status(400).json({ message: "Question is required" });
+  const [projects, tasks, docs, snippets, activities] = await Promise.all([
     Project.find({ workspace: req.workspace._id }).select("name status description").lean(),
     Task.find({ workspace: req.workspace._id }).select("title status priority dueDate").lean(),
     DocPage.find({ workspace: req.workspace._id }).select("title content").limit(20).lean(),
-    Snippet.find({ workspace: req.workspace._id }).select("title language tags").lean()
+    Snippet.find({ workspace: req.workspace._id }).select("title language tags").lean(),
+    Activity.find({ workspace: req.workspace._id }).select("type message createdAt").sort("-createdAt").limit(20).lean()
   ]);
+  const context = { projects, tasks, docs, snippets, activities };
   const answer = await runGemini(
-    `Answer this workspace question using the JSON context.\nQuestion: ${req.body.question}\nContext: ${JSON.stringify({ projects, tasks, docs, snippets })}`,
-    "AI search is ready, but GEMINI_API_KEY is not configured. Add it to server/.env to enable workspace-aware answers."
+    `Answer this workspace question using the JSON context.\nQuestion: ${req.body.question}\nContext: ${JSON.stringify(context)}`,
+    localAiSearch(req.body.question, context)
   );
   res.json({ answer });
 });
 
-export default router;
+function localAiSearch(question, { projects, tasks, docs, snippets, activities }) {
+  const words = question.toLowerCase().split(/\W+/).filter((word) => word.length > 2);
+  const matches = (value) => words.some((word) => String(value || "").toLowerCase().includes(word));
+  const matchedTasks = tasks.filter((task) => matches(`${task.title} ${task.status} ${task.priority}`));
+  const matchedProjects = projects.filter((project) => matches(`${project.name} ${project.status} ${project.description}`));
+  const matchedDocs = docs.filter((doc) => matches(`${doc.title} ${doc.content}`));
+  const matchedSnippets = snippets.filter((snippet) => matches(`${snippet.title} ${snippet.language} ${(snippet.tags || []).join(" ")}`));
+  const openP0 = tasks.filter((task) => task.priority === "P0" && task.status !== "Done");
+  return [
+    `Workspace search summary for "${question}":`,
+    `- Projects matched: ${matchedProjects.length}${matchedProjects.length ? ` (${matchedProjects.slice(0, 4).map((item) => item.name).join(", ")})` : ""}`,
+    `- Tasks matched: ${matchedTasks.length}${matchedTasks.length ? ` (${matchedTasks.slice(0, 5).map((item) => `${item.title} - ${item.status}`).join(", ")})` : ""}`,
+    `- Docs matched: ${matchedDocs.length}${matchedDocs.length ? ` (${matchedDocs.slice(0, 4).map((item) => item.title).join(", ")})` : ""}`,
+    `- Snippets matched: ${matchedSnippets.length}${matchedSnippets.length ? ` (${matchedSnippets.slice(0, 4).map((item) => item.title).join(", ")})` : ""}`,
+    `- Open P0 tasks: ${openP0.length}${openP0.length ? ` (${openP0.map((item) => item.title).join(", ")})` : ""}`,
+    `- Recent activity checked: ${activities.length} events`,
+    "Configure a valid GEMINI_API_KEY in server/.env for natural language synthesis over this same live data."
+  ].join("\n");
+}
+
+export default wrapAsyncRouter(router);

@@ -4,6 +4,7 @@ import Task from "../models/Task.js";
 import { requireAuth, requireWorkspaceRole } from "../middleware/auth.js";
 import { recordActivity, notifyUsers } from "../services/activity.js";
 import { emitWorkspace } from "../socket/index.js";
+import { wrapAsyncRouter } from "../utils/wrapAsyncRouter.js";
 
 const router = express.Router();
 router.use(requireAuth);
@@ -56,4 +57,4 @@ router.get("/:workspaceId/:projectId/report", requireWorkspaceRole, async (req, 
   res.json({ project, summary: { totalTasks: tasks.length, done, completion: tasks.length ? Math.round(done / tasks.length * 100) : 0, blockers }, tasks });
 });
 
-export default router;
+export default wrapAsyncRouter(router);

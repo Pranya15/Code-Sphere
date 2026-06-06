@@ -12,6 +12,7 @@ import { requireAuth, requireWorkspaceRole } from "../middleware/auth.js";
 import { recordActivity, notifyUsers } from "../services/activity.js";
 import { sendWorkspaceInviteEmail } from "../services/mailer.js";
 import { emitWorkspace } from "../socket/index.js";
+import { wrapAsyncRouter } from "../utils/wrapAsyncRouter.js";
 
 const router = express.Router();
 
@@ -274,4 +275,4 @@ router.delete("/:workspaceId/members/:userId", requireWorkspaceRole, async (req,
   res.json(await Workspace.findById(req.workspace._id).populate("members.user", "name email avatar plan bio skills github linkedin lastSeenAt"));
 });
 
-export default router;
+export default wrapAsyncRouter(router);

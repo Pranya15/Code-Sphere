@@ -1,8 +1,9 @@
 import { Navigate, NavLink, Outlet, Route, Routes, useLocation, useNavigate, useParams } from "react-router-dom";
-import { Activity, AlertTriangle, Bell, BookOpen, Bot, CalendarDays, CheckCircle2, Code2, CreditCard, Eye, EyeOff, FileSearch, Github, KanbanSquare, LayoutDashboard, Linkedin, Loader2, LogOut, Menu, Moon, PanelLeftClose, PanelLeftOpen, Search, Settings, ShieldCheck, Sparkles, Sun, User, UserPlus, Users, Workflow, X } from "lucide-react";
+import { Activity, AlertTriangle, Apple, Bell, BookOpen, Bot, CalendarDays, CheckCircle2, Code2, CreditCard, Eye, EyeOff, FileSearch, Github, KanbanSquare, LayoutDashboard, Linkedin, Loader2, LogOut, Menu, Moon, PanelLeftClose, PanelLeftOpen, Search, Settings, ShieldCheck, Sparkles, Sun, User, UserPlus, Users, Workflow, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useAuth } from "./context/AuthContext";
+import { useTheme } from "./context/ThemeContext";
 import { useSocket } from "./context/SocketContext";
 import { api, setToken } from "./api/client";
 import { Badge, Button, Input, Loading } from "./components/ui";
@@ -29,6 +30,7 @@ export default function App() {
   return <Routes>
     <Route path="/landing" element={<LandingPage />} />
     <Route path="/login" element={<LoginRoute user={user} />} />
+    <Route path="/auth/callback" element={<OAuthCallbackPage />} />
     <Route path="/accept-invite/:token" element={<AcceptInvitePage />} />
     <Route element={user ? <Shell /> : <Navigate to="/landing" />}>
       <Route index element={<DashboardPage />} />
@@ -189,25 +191,13 @@ function AcceptInvitePage() {
 function Shell() {
   const { user, logout, workspaces, activeWorkspaceId, setActiveWorkspaceId } = useAuth();
   const { online } = useSocket();
+  const { theme, themePref, setThemePref } = useTheme();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState(null);
-  const [themePref, setThemePref] = useState(() => localStorage.getItem("codesphere_theme") || "system");
-  const [dark, setDark] = useState(() => {
-    const pref = localStorage.getItem("codesphere_theme") || "system";
-    if (pref === "dark") return true;
-    if (pref === "light") return false;
-    return typeof window !== "undefined" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
-  });
   const [collapsed, setCollapsed] = useState(() => localStorage.getItem("codesphere_nav") === "collapsed");
   const [mobileOpen, setMobileOpen] = useState(false);
   const [commandOpen, setCommandOpen] = useState(false);
   const navigate = useNavigate();
-
-  useEffect(() => {
-    document.documentElement.classList.toggle("dark", dark);
-    // persist the user's explicit preference; 'system' is stored literally
-    localStorage.setItem("codesphere_theme", themePref);
-  }, [dark, themePref]);
 
   useEffect(() => {
     localStorage.setItem("codesphere_nav", collapsed ? "collapsed" : "expanded");
@@ -265,11 +255,9 @@ function Shell() {
               <div className="flex items-center gap-2">
               <div className="hidden items-center gap-2 rounded-full border border-[var(--line)] bg-white/60 px-3 py-2 text-xs text-slate-500 dark:bg-white/6 md:flex"><span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_16px_rgba(52,211,153,.8)]" />{online.length} online</div>
               <Button variant="ghost" onClick={() => {
-                // toggle between explicit light/dark (clears 'system')
-                const nextPref = dark ? "light" : "dark";
+                const nextPref = theme === "dark" ? "light" : "dark";
                 setThemePref(nextPref);
-                setDark(nextPref === "dark");
-              }} aria-label="Toggle theme">{dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}</Button>
+              }} aria-label="Toggle theme">{theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}</Button>
               <Button variant="ghost" onClick={() => navigate("/profile")}><User className="h-4 w-4" /><span className="hidden sm:inline">{user.name}</span></Button>
             </div>
           </div>
@@ -383,6 +371,13 @@ function AuthPage({ initialError = "" }) {
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(initialError);
+  const [oauth, setOauth] = useState({ providers: [], missingProviders: [] });
+
+  useEffect(() => {
+    api.get("/auth/oauth/providers", { suppressToast: true })
+      .then(({ data }) => setOauth(data))
+      .catch(() => setOauth({ providers: [], missingProviders: [] }));
+  }, []);
 
   async function submit(event) {
     event.preventDefault();
@@ -415,7 +410,29 @@ function AuthPage({ initialError = "" }) {
         </button>
       </div>
       <Button type="submit" className="w-full" disabled={submitting}>{submitting && <Loader2 className="h-4 w-4 animate-spin" />}{mode === "login" ? "Sign in" : "Create account"}</Button>
+      <OAuthButtons providers={oauth.providers} />
       <button type="button" onClick={() => { setMode(mode === "login" ? "register" : "login"); setError(""); }} className="mt-4 w-full text-sm font-semibold text-violet-600 dark:text-violet-300">{mode === "login" ? "Create a new workspace" : "Use an existing account"}</button>
     </motion.form>
+  </div>;
+}
+
+function OAuthButtons({ providers = [] }) {
+  const icons = { github: Github, linkedin: Linkedin, apple: Apple, google: Sparkles, microsoft: ShieldCheck };
+  if (!providers.length) return null;
+  return <div className="mt-4 grid gap-2">
+    {providers.map((provider) => {
+      const Icon = icons[provider.id] || ShieldCheck;
+      return <button
+        key={provider.id}
+        type="button"
+        disabled={!provider.configured}
+        title={provider.configured ? `Continue with ${provider.name}` : `Missing ${provider.missing.join(", ")}`}
+        onClick={() => { window.location.href = `/api/auth/oauth/${provider.id}/start`; }}
+        className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-[var(--line)] bg-white/60 px-3 text-sm font-semibold transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-55 dark:bg-white/8 dark:hover:bg-white/12"
+      >
+        <Icon className="h-4 w-4" />
+        {provider.configured ? `Continue with ${provider.name}` : `${provider.name} not configured`}
+      </button>;
+    })}
   </div>;
 }

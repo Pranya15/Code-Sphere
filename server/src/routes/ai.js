@@ -3,12 +3,14 @@ import Project from "../models/Project.js";
 import Task from "../models/Task.js";
 import { requireAuth, requireWorkspaceRole } from "../middleware/auth.js";
 import { runGemini } from "../services/gemini.js";
+import { wrapAsyncRouter } from "../utils/wrapAsyncRouter.js";
 
 const router = express.Router();
 router.use(requireAuth);
 
 router.post("/:workspaceId/assistant", requireWorkspaceRole, async (req, res) => {
   if (req.user.plan !== "pro") return res.status(402).json({ message: "AI Assistant requires Pro" });
+  if (!req.body.prompt?.trim()) return res.status(400).json({ message: "Prompt is required" });
   const [projects, tasks] = await Promise.all([
     Project.find({ workspace: req.workspace._id }).lean(),
     Task.find({ workspace: req.workspace._id }).populate("assignees", "name").lean()
@@ -20,6 +22,7 @@ router.post("/:workspaceId/assistant", requireWorkspaceRole, async (req, res) =>
 
 router.post("/code-review", requireAuth, async (req, res) => {
   if (req.user.plan !== "pro") return res.status(402).json({ message: "AI Code Review requires Pro" });
+  if (!req.body.code?.trim()) return res.status(400).json({ message: "Code is required" });
   const prompt = `Review this ${req.body.language || "code"} for bugs, performance, security, maintainability, score 1-100, and concrete fixes:\n${req.body.code}`;
   const fallback = localCodeReview(req.body.code || "");
   const review = await runGemini(prompt, fallback);
@@ -44,4 +47,4 @@ function localCodeReview(code) {
   return `Score: ${findings.length > 1 ? 72 : 86}/100\nFindings:\n- ${findings.join("\n- ")}\nRecommendations:\n- Add input validation.\n- Add explicit error handling.\n- Keep pure logic covered with unit tests.`;
 }
 
-export default router;
+export default wrapAsyncRouter(router);
