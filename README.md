@@ -1,39 +1,77 @@
-# CodeSphere
+# Code-Sphere
 
-CodeSphere is a full-stack developer collaboration SaaS with workspaces, projects, tasks, docs, snippets, realtime collaboration, AI assistance, global search, profiles, billing UI, and seed data.
+CodeSphere is a full-stack MERN collaboration platform featuring project management, task tracking, team workspaces, real-time communication, AI-powered assistance, authentication, analytics dashboards, billing management, and secure cloud-based deployment.
 
-## Stack
+## Features
 
-- Frontend: React, Vite, Tailwind CSS, Socket.IO client
-- Backend: Node.js, Express.js, MongoDB, Mongoose, JWT, Socket.IO
-- AI: Gemini via `@google/generative-ai`
+* Team Workspaces
+* Project & Task Management
+* Real-time Collaboration
+* AI-Powered Assistant
+* Global Search
+* Authentication & Authorization
+* Analytics Dashboard
+* Profile Management
+* Billing Management
+* Document & Snippet Sharing
 
-## Setup
+## Tech Stack
 
-1. Install dependencies:
-   ```bash
-   npm run install:all
-   ```
-2. Copy `.env.example` to `server/.env` and set values.
-3. Start MongoDB locally or set `MONGO_URI`.
-4. Seed the database:
-   ```bash
-   npm run seed
-   ```
-5. Build the React frontend and run the Express server:
-   ```bash
-   npm start
-   ```
+### Frontend
 
-Default seeded login:
+* React
+* Vite
+* Tailwind CSS
+* Socket.IO Client
 
-- Email: `owner@codesphere.dev`
-- Password: `Password123!`
+### Backend
 
-## URL
+* Node.js
+* Express.js
+* MongoDB
+* Mongoose
+* JWT Authentication
+* Socket.IO
 
-- App and API: `http://localhost:5000`
+### AI Integration
+
+* Google Gemini API
+
+## Installation
+
+```bash
+npm run install:all
+```
+
+## Environment Setup
+
+Copy `.env.example` and configure:
+
+```bash
+MONGO_URI=
+JWT_SECRET=
+GEMINI_API_KEY=
+```
+
+## Run Project
+
+```bash
+npm run seed
+npm start
+```
+
+## Default Login
+
+Email: [owner@codesphere.dev](mailto:owner@codesphere.dev)
+
+Password: Password123!
+
+## Local URL
+
+```text
+http://localhost:5000
+```
 
 ## OAuth
 
-Real OAuth setup is documented in `docs/oauth-setup.md`. Provider client secrets belong only in `server/.env`.
+OAuth provider configuration is documented in `docs/oauth-setup.md`.
