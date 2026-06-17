@@ -75,3 +75,4 @@ http://localhost:5000
 ## OAuth
 
 OAuth provider configuration is documented in `docs/oauth-setup.md`.
+ 
